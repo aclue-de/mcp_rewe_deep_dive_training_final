@@ -21,6 +21,10 @@ public record Issue(
         comments = comments == null ? List.of() : List.copyOf(comments);
     }
 
+    public Issue withStatus(Status newStatus, LocalDate changed) {
+        return new Issue(key, summary, description, newStatus, priority, assignee, sprint, labels, comments, changed);
+    }
+
     public Issue withAddedComment(Comment comment) {
         List<Comment> updatedComments = new ArrayList<>(comments);
         updatedComments.add(comment);

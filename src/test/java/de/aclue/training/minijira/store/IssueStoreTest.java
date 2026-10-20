@@ -117,6 +117,32 @@ class IssueStoreTest {
     }
 
     @Test
+    void updateStatusChangesOnlyTheInMemoryData(@TempDir Path tempDir) throws IOException {
+        Path dataFile = fixtureFile(tempDir);
+        String original = Files.readString(dataFile);
+        IssueStore store = storeOver(dataFile);
+
+        Issue updated = store.updateStatus("SHOP-2", Status.DONE, LocalDate.of(2026, 11, 3));
+
+        assertThat(updated.status()).isEqualTo(Status.DONE);
+        assertThat(updated.updated()).isEqualTo(LocalDate.of(2026, 11, 3));
+        assertThat(updated.comments()).hasSize(1);
+        assertThat(store.findByKey("SHOP-2").orElseThrow().status()).isEqualTo(Status.DONE);
+
+        assertThat(Files.readString(dataFile)).isEqualTo(original);
+        IssueStore restarted = storeOver(dataFile);
+        assertThat(restarted.findByKey("SHOP-2").orElseThrow().status()).isEqualTo(Status.BLOCKED);
+    }
+
+    @Test
+    void updateStatusThrowsForUnknownKey(@TempDir Path tempDir) throws IOException {
+        IssueStore store = storeOver(fixtureFile(tempDir));
+
+        assertThatThrownBy(() -> store.updateStatus("SHOP-999", Status.DONE, LocalDate.now()))
+                .isInstanceOf(IssueNotFoundException.class);
+    }
+
+    @Test
     void constructorFailsFastWhenDataFileIsMissing(@TempDir Path tempDir) {
         Path missing = tempDir.resolve("does-not-exist.json");
 

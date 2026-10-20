@@ -94,6 +94,16 @@ public class IssueStore {
                 .toList();
     }
 
+    public Issue updateStatus(String key, Status newStatus, LocalDate changed) {
+        Issue issue = issuesByKey.get(key);
+        if (issue == null) {
+            throw new IssueNotFoundException(key);
+        }
+        Issue updated = issue.withStatus(newStatus, changed);
+        issuesByKey.put(key, updated);
+        return updated;
+    }
+
     public Issue addComment(String key, String author, LocalDate created, String body) {
         Issue issue = issuesByKey.get(key);
         if (issue == null) {
